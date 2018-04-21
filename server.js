@@ -36,13 +36,13 @@ var con = mysql.createConnection({
   database: "voting"
 });
 
-function insertTeam(teamname) {
+function insertTeam(teamname, callback) {
   var sql = "INSERT INTO teams (name) VALUES (" + con.escape(teamname) + ")";
   con.query(sql, function (err, result) {
     if (err) {
       console.log(err);
     }
-    console.log("1 record inserted");
+    callback(result);
   });
 }
 
@@ -117,7 +117,17 @@ function findTeam(teamname, callback) {
   });
 }
 
-function updateTeamVotesOnClient(team, socket) {
+function deleteTeam(team_id, callback) {
+  sql = 'DELETE FROM teams where id = ' + con.escape(team_id);
+  con.query(sql, function (error, results, fields) {
+    if (error) {
+      console.log(error);
+    }
+    callback(results);
+  });
+}
+
+function updateTeamVotesOnAllClients(team, socket) {
   getVotesByTeam(team.id, function(votes) {
     sum = 0;
     votes.forEach(function(vote) {
@@ -125,6 +135,17 @@ function updateTeamVotesOnClient(team, socket) {
     });
     team.points = sum;
     socket.broadcast.emit('team.update', team);
+    socket.emit('team.update', team);
+  });
+}
+
+function updateTeamVotesOnOwnClient(team, socket) {
+  getVotesByTeam(team.id, function(votes) {
+    sum = 0;
+    votes.forEach(function(vote) {
+      sum += vote.points
+    });
+    team.points = sum;
     socket.emit('team.update', team);
   });
 }
@@ -150,10 +171,28 @@ io.on('connection', function(socket) {
   socket.on('team.fetch', function(data) {
     getTeams(function(teams) {
       teams.forEach(function(team) {
-        updateTeamVotesOnClient(team, socket);
+        updateTeamVotesOnOwnClient(team, socket);
       });
     });
   });
+
+  socket.on('team.new', function(team) {
+    insertTeam(team.name, function(result) {
+      getTeams(function(teams) {
+        teams.forEach(function(team) {
+          console.log(team);
+          updateTeamVotesOnAllClients(team, socket);
+        });
+      });
+    })
+  })
+
+  socket.on('team.delete', function(team){
+    deleteTeam(team.id, function(results) {
+      socket.broadcast.emit('team.deleted', team );
+      socket.emit('team.deleted', team );
+    })
+  })
 
   socket.on('user.can_vote', function(data) {
     findUser(data.name, function(user) {
@@ -193,7 +232,7 @@ io.on('connection', function(socket) {
 
     getTeams(function(teams) {
       teams.forEach(function(team) {
-        updateTeamVotesOnClient(team, socket);
+        updateTeamVotesOnAllClients(team, socket);
       });
     });
   });

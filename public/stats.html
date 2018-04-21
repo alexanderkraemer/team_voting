@@ -13,11 +13,15 @@
 
       function onStartup() {
         socket.emit('team.fetch');
-        socket.on('team.update', function(data) {
-          team = data;
-          console.log(team);
+
+        socket.on('team.update', function(team) {
           $('#' + team.id).remove();
-          $('#teams').prepend("<tr id='" + team.id +"'><td>" + team.name + "</td><td>" + team.points + "</td></tr>")
+          $('#teams').prepend("<tr id='" + team.id +"'><td>" + team.name + "</td><td>" + team.points + "</td></tr>");
+        });
+
+        socket.on('team.deleted', function(team) {
+          console.log('deleted');
+          $('#' + team.id).remove();
         });
       }
 

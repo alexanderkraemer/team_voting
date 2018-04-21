@@ -48,8 +48,17 @@
 
         socket.on('teams.all', function(data) {
           data.forEach(function(team) {
-            $('#teams').prepend("<tr><td>" + team.name + "</td><td><input id='" + team.name + "' type='number' onkeydown='updatePoints()' value='0' min='0' max='10' size='20'></td></tr>");
+            $('#teams').prepend("<tr id='" + team.id + "'><td>" + team.name + "</td><td><input id='" + team.name + "' type='number' onkeydown='updatePoints()' value='0' min='0' max='10' size='20'></td></tr>");
           })
+        });
+
+        socket.on('team.update', function(team) {
+          $('#' + team.id).remove();
+          $('#teams').prepend("<tr id='" + team.id + "'><td>" + team.name + "</td><td><input id='" + team.name + "' type='number' onkeydown='updatePoints()' value='0' min='0' max='10' size='20'></td></tr>");
+        });
+
+        socket.on('team.deleted', function(team) {
+          $('#' + team.id).remove();
         })
       }
 
