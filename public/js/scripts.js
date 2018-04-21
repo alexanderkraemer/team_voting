@@ -33,17 +33,10 @@ function setCookie(cname, cvalue, exdays) {
   document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
-function setName() {
-  name = $('#name').val();
-  setCookie('name', name, 1);
-
-  if(getCookie('name') == "") {
-    console.log('cookies not enabled!');
-    showError('Cookies not enabled! Please enable your cookies in your browser settings!');
-  } else {
-    window.location.replace("/teams");
-  }
+function deleteCookie(cname) {
+  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
+
 
 function getUsername() {
   if(getCookie('name') == "") {

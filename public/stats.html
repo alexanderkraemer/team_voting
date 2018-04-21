@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
    <head>
-      <title>Hello world</title>
+     <title>LipSync Battle</title>
 
       <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
       <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">
@@ -12,16 +12,13 @@
       var socket = io();
 
       function onStartup() {
-        socket.emit('teams.fetch');
+        socket.emit('team.fetch');
         socket.on('team.update', function(data) {
-          console.log(data);
-          data.forEach(function(team) {
-            $('#teams').prepend("<tr><td>" + team.name + "</td><td>" + team.points + "</td></tr>")
-          });
+          team = data;
+          console.log(team);
+          $('#' + team.id).remove();
+          $('#teams').prepend("<tr id='" + team.id +"'><td>" + team.name + "</td><td>" + team.points + "</td></tr>")
         });
-        user = {
-          name: getUsername()
-        }
       }
 
       </script>

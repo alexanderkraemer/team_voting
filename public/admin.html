@@ -2,54 +2,30 @@
 <html>
    <head>
       <title>LipSync Battle</title>
-      <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
       <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">
       <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
       <link href="css" type="text/css" rel="stylesheet">
       <script src="js"></script>
       <script>
-      var socket = io();
-
       function onStartup() {
-
-        if(getCookie('name') == "") {
+        if(getCookie('name') == "admin") {
           $('div#get_name').show();
         } else {
           window.location.replace("/teams");
         }
       }
 
-      function setName() {
-        name = $('#name').val();
-        setCookie('testSettings', 'yes', 1);
+      function setTeam() {
 
-        if(getCookie('testSettings') == "") {
-          console.log('cookies not enabled!');
-          showError('Cookies not enabled! Please enable your cookies in your browser settings!');
-        } else {
-          user = {
-            name: name
-          }
-          socket.emit('user.available', user);
-          socket.on('user.available.yes', function(data) {
-            setCookie('name', name, 1);
-            window.location.replace("/teams");
-          });
-          socket.on('user.available.no', function(data) {
-            deleteCookie('name');
-            showError('Username ist bereits vergeben!');
-          });
-        }
       }
-
       </script>
    </head>
    <body class="text-center">
     <div class="cover-container d-flex col-md-8 mx-auto flex-column" style="margin-top:100px;">
       <div id="get_name" class="inner cover" style="display:none">
-        <h1 class="cover-heading">Your name.</h1>
+        <h1 class="cover-heading">Enter Teams</h1>
         <input id="name" type="text" name="name" value="" class="form-control" placeholder="Enter your Name!">
-        <button class="btn btn-lg btn-primary btn-block" type="button" onclick="setName()" style="margin-top:10px;">Save</button>
+        <button class="btn btn-lg btn-primary btn-block" type="button" onclick="setTeam()" style="margin-top:10px;">Save</button>
         <br>
         <div class="alert alert-error alert-danger collapse" id="error"></div>
       </div>

@@ -73,12 +73,22 @@ function findUser(username, callback) {
     if (error) {
       console.log(error);
     }
-    callback(results[0]);
+    callback(results);
   });
 }
 
 function findVotesByUser(user_id, callback) {
   sql = "SELECT * FROM votes where user_id = " + con.escape(user_id);
+  con.query(sql, function (error, results, fields) {
+    if (error) {
+      console.log(error);
+    }
+    callback(results);
+  });
+}
+
+function getVotesByTeam(team_id, callback) {
+  sql = "SELECT * FROM votes where team_id = " + con.escape(team_id);
   con.query(sql, function (error, results, fields) {
     if (error) {
       console.log(error);
@@ -103,7 +113,19 @@ function findTeam(teamname, callback) {
     if (error) {
       console.log(error);
     }
-    callback(results[0]);
+    callback(results);
+  });
+}
+
+function updateTeamVotesOnClient(team, socket) {
+  getVotesByTeam(team.id, function(votes) {
+    sum = 0;
+    votes.forEach(function(vote) {
+      sum += vote.points
+    });
+    team.points = sum;
+    socket.broadcast.emit('team.update', team);
+    socket.emit('team.update', team);
   });
 }
 
@@ -112,7 +134,7 @@ io.on('connection', function(socket) {
 
   socket.on('user.register', function(data) {
     findUser(data.name, function(results) {
-      if(results) {
+      if(results.length > 0) {
         console.log('User: "' + data.name + '" already registered');
       } else {
         insertUser(data.name);
@@ -125,14 +147,17 @@ io.on('connection', function(socket) {
     })
   });
 
-  socket.on('teams.fetch', function(data) {
+  socket.on('team.fetch', function(data) {
     getTeams(function(teams) {
-      socket.emit('team.update', teams);
+      teams.forEach(function(team) {
+        updateTeamVotesOnClient(team, socket);
+      });
     });
   });
 
   socket.on('user.can_vote', function(data) {
     findUser(data.name, function(user) {
+
       findVotesByUser(user.id, function (result) {
         if(result.length > 0) {
           socket.emit('user.can_vote.no');
@@ -143,19 +168,33 @@ io.on('connection', function(socket) {
     });
   });
 
+  socket.on('user.available', function(data) {
+    findUser(data.name, function(user) {
+      console.log(user);
+      if(user.length > 0) {
+        socket.emit('user.available.no');
+      } else {
+        socket.emit('user.available.yes');
+      }
+    });
+  });
+
   socket.on('user.vote', function(data) {
     username = data.username;
     teamname = data.teamname;
     points = data.points;
-    findUser(username, function(user) {
-      findTeam(teamname, function(team){
+    findUser(username, function(data) {
+      user = data[0];
+      findTeam(teamname, function(data){
+        team = data[0];
         insertVote(user.id, team.id, points);
-      })
-
+      });
     });
 
     getTeams(function(teams) {
-      socket.broadcast.emit('votes.update', teams);
+      teams.forEach(function(team) {
+        updateTeamVotesOnClient(team, socket);
+      });
     });
   });
 });
