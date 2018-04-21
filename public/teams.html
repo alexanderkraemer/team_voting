@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Hello world</title>
+
+      <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
+      <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+      <link href="css" type="text/css" rel="stylesheet">
+      <script src="js"></script>
+      <script>
+      var socket = io();
+
+      const POINT_TO_SPEND = 10;
+
+      function calculateSum(){
+        sum = 0;
+        $('input').each(function() {
+          if($(this).val() < 0 || $(this).val() > 10) {
+            $(this).val(0);
+            showError('Der Wert muss zwischen 0 und 10 liegen!');
+          }
+          sum += Number($(this).val());
+        });
+        return sum;
+      }
+
+      function updatePoints(){
+        $('#remaining_points').text((POINT_TO_SPEND - calculateSum()) % 10);
+      }
+
+      function onStartup() {
+        user = {
+          name: getUsername()
+        }
+        socket.emit('user.can_vote', user);
+        socket.on('user.can_vote.no', function (data){
+          window.location.replace("/stats");
+        });
+
+        socket.on('user.can_vote.yes', function(data) {
+          $('#team_table').show();
+        })
+
+        $('#remaining_points').text(POINT_TO_SPEND);
+
+        socket.emit('user.register', user);
+
+        socket.on('teams.all', function(data) {
+          data.forEach(function(team) {
+            $('#teams').prepend("<tr><td>" + team.name + "</td><td><input id='" + team.name + "' type='number' onkeydown='updatePoints()' value='0' min='0' max='10' size='20'></td></tr>");
+          })
+        })
+      }
+
+      function saveVotes() {
+
+        if (calculateSum() != 10) {
+          showError('Du musst genau 10 Punkte vergeben!');
+        } else {
+          $('input').each(function() {
+            vote = {
+              username: getUsername(),
+              teamname: $(this).attr('id'),
+              points: $(this).val()
+            }
+            socket.emit('user.vote', vote)
+          });
+          window.location.replace("/stats");
+        }
+      }
+
+      </script>
+   </head>
+   <body class="text-center">
+    <div id="team_table" class="cover-container col-lg-12 mx-auto" style="margin-top:100px; display:none">
+      <div class="inner cover">
+        <h1 class="cover-heading">Vote for your favourite Teams.</h1>
+        <h5>Du hast noch <span id="remaining_points"></span> Punkte zur Verfügung!</h5>
+        <div class="alert alert-error alert-danger collapse" id="error"></div>
+      </div>
+      <div class="card">
+        <table  class="table table-striped table-responsive-md">
+          <thead>
+            <tr>
+              <th class="col-md-7">Name</th>
+              <th class="col-md-5">Punkte</th>
+            </tr>
+          </thead>
+          <tbody id="teams"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">
+                <button id="save" class="btn btn-lg btn-primary btn-block" type="button" onclick="saveVotes(); return false;">Save</button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+
+
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+  </body>
+</html>
