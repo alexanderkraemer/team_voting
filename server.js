@@ -3,27 +3,28 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var mysql = require('mysql');
 
-http.listen(3000, function() {
+http.listen(3000, "127.0.0.1", function() {
    console.log('listening on localhost:3000');
 });
 
 app.get('/', function(req, res) {
-   res.sendfile('public/index.html');
+   res.sendFile( __dirname + "/public/" + "index.html" );  
+// res.sendfile('public/index.html');
 });
 app.get('/css', function(req, res) {
-   res.sendfile('public/css/style.css');
+   res.sendFile(__dirname +'/public/css/style.css');
 });
 app.get('/js', function(req, res) {
-   res.sendfile('public/js/scripts.js');
+   res.sendFile(__dirname +'/public/js/scripts.js');
 });
 app.get('/admin', function(req, res) {
-   res.sendfile('public/admin.html');
+   res.sendFile(__dirname +'/public/admin.html');
 });
 app.get('/teams', function(req, res) {
-   res.sendfile('public/teams.html');
+   res.sendFile(__dirname +'/public/teams.html');
 });
 app.get('/stats', function(req, res) {
-   res.sendfile('public/stats.html');
+   res.sendFile(__dirname +'/public/stats.html');
 });
 
 
@@ -32,7 +33,7 @@ app.get('/stats', function(req, res) {
 var con = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "password",
   database: "voting"
 });
 
@@ -53,6 +54,7 @@ function insertVote(user_id, team_id, points) {
     if (err) {
       console.log(err);
     }
+    console.log('sql', sql);
     console.log("1 record inserted");
   });
 }
@@ -63,7 +65,6 @@ function insertUser(username) {
     if (err) {
       console.log(err);
     }
-    console.log("1 user inserted");
   });
 }
 
@@ -196,8 +197,9 @@ io.on('connection', function(socket) {
 
   socket.on('user.can_vote', function(data) {
     findUser(data.name, function(user) {
-
+	console.log('user: ', user);
       findVotesByUser(user.id, function (result) {
+	console.log(result);
         if(result.length > 0) {
           socket.emit('user.can_vote.no');
         } else {
