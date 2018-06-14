@@ -1,4 +1,5 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var mysql = require('mysql');
@@ -8,23 +9,23 @@ http.listen(3000, "127.0.0.1", function() {
 });
 
 app.get('/', function(req, res) {
-   res.sendFile( __dirname + "/public/" + "index.html" );  
-// res.sendfile('public/index.html');
+   res.sendFile( __dirname + '/public/' + 'index.html' );
 });
 app.get('/css', function(req, res) {
-   res.sendFile(__dirname +'/public/css/style.css');
+   res.sendFile( __dirname + '/public/css/style.css');
 });
 app.get('/js', function(req, res) {
-   res.sendFile(__dirname +'/public/js/scripts.js');
+   res.sendFile( __dirname + '/public/js/scripts.js');
 });
+
 app.get('/admin', function(req, res) {
-   res.sendFile(__dirname +'/public/admin.html');
+   res.sendFile( __dirname + '/public/admin.html');
 });
 app.get('/teams', function(req, res) {
-   res.sendFile(__dirname +'/public/teams.html');
+   res.sendFile( __dirname + '/public/teams.html');
 });
 app.get('/stats', function(req, res) {
-   res.sendFile(__dirname +'/public/stats.html');
+   res.sendFile( __dirname + '/public/stats.html');
 });
 
 
